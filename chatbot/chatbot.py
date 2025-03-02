@@ -1,26 +1,26 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+from starlette.templating import Jinja2Templates
 
 app = FastAPI()
 
-# Configurar CORS para permitir solicitudes desde el frontend (puerto 8080)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Cambia "*" por ["http://127.0.0.1:8080"] si quieres restringir
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Servir archivos estáticos (CSS, imágenes, JS)
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Modelo de datos para recibir mensajes
-class Mensaje(BaseModel):
-    mensaje: str
+# Configurar Jinja2 para renderizar HTML
+templates = Jinja2Templates(directory="templates")
 
-@app.post("/chat")
-async def responder(mensaje: Mensaje):
-    respuesta = f"Recibí tu mensaje: {mensaje.mensaje}"
-    return {"respuesta": respuesta}
+@app.get("/")
+def home(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
 
-# Ejecutar el servidor con:
-# uvicorn chatbot:app --reload
+@app.post("/chatbot")
+async def chatbot_endpoint(request: Request):
+    data = await request.json()
+    user_query = data.get("query", "")
+
+    # Respuesta simple (puedes integrar IA aquí)
+    response_text = f"🤖 Respuesta: Recibí tu mensaje: '{user_query}'"
+
+    return JSONResponse(content={"response": response_text})

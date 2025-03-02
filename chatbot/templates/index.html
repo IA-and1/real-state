@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot Interactivo</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="chat-container">
+        <h2>💬 Chat con el Bot</h2>
+        <div id="chat-box">
+            <p class="bot-message">🤖 Hola, ¿en qué puedo ayudarte?</p>
+        </div>
+        <div class="input-container">
+            <input type="text" id="user-input" placeholder="Escribe un mensaje..." autocomplete="off">
+            <button onclick="sendMessage()">Enviar</button>
+        </div>
+    </div>
+
+    <script>
+        async function sendMessage() {
+            let userInput = document.getElementById("user-input");
+            let chatBox = document.getElementById("chat-box");
+            let message = userInput.value.trim();
+
+            if (message === "") return; 
+
+            // Mostrar mensaje del usuario en el chat
+            chatBox.innerHTML += `<p class="user-message">🧑 ${message}</p>`;
+            userInput.value = "";
+
+            // Enviar la consulta al backend
+            let response = await fetch("/chatbot", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ query: message })
+            });
+
+            let data = await response.json();
+            chatBox.innerHTML += `<p class="bot-message">${data.response}</p>`;
+
+            // Desplazarse al último mensaje
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // Enviar mensaje al presionar "Enter"
+        document.getElementById("user-input").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
